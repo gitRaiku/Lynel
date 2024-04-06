@@ -21,8 +21,15 @@ reg dataparity;
 reg cstate;
 reg[3:0] bitstuf;
 
+wire clk12;
+wire clig_rst;
+
+reg resclk;
+assign clig_rst = rst_n && resclk;
+
+cligger12 clig12(clk, clig_rst, clk12);
 
 
-wire 
+
 
 endmodule
