@@ -70,9 +70,6 @@ proc create_report { reportName command } {
   }
 }
 OPTRACE "synth_1" START { ROLLUP_AUTO }
-set_param tcl.collectionResultDisplayLimit 0
-set_param xicom.use_bs_reader 1
-set_param chipscope.maxJobs 3
 OPTRACE "Creating in-memory project" START { }
 create_project -in_memory -part xc7a15tcsg325-1
 
@@ -87,7 +84,10 @@ set_property ip_output_repo /btrfs/Git/Lynel/usbi2c/usbi2c.cache/ip [current_pro
 set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
-read_verilog -library xil_defaultlib /btrfs/Git/Lynel/usbi2c/usbi2c.srcs/sources_1/new/main.v
+read_verilog -library xil_defaultlib {
+  /btrfs/Git/Lynel/usbi2c/usbi2c.srcs/sources_1/imports/src/i2c_rx.v
+  /btrfs/Git/Lynel/usbi2c/usbi2c.srcs/sources_1/new/main.v
+}
 OPTRACE "Adding files" END { }
 # Mark all dcp files as not used in implementation to prevent them from being
 # stitched into the results of this synthesis run. Any black boxes in the
