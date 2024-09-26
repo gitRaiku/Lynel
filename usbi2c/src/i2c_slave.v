@@ -1,0 +1,1 @@
+../usbi2c.srcs/sources_1/new/i2c_slave.v
