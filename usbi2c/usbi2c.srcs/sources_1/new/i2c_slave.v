@@ -1,6 +1,8 @@
 `timescale 1ns / 1ps
 
 module i2c_slave(
+    input sys_clk,
+    input rst_n,
     inout sda,
     input scl
     );
@@ -9,10 +11,25 @@ reg lsda;
 reg start;
 
 reg writeEnabled, csda;
+//assign sda = 1'bz;
 assign sda = writeEnabled ? csda : 1'bz;
 
 reg [6:0]address;
 reg [5:0]state;
+
+localparam STATE_PD0 = 6'd20;
+localparam STATE_PD1 = 6'd21;
+
+always @(posedge sys_clk) begin
+    if (!rst_n) begin
+        lsda <= 1'b0;
+        start <= 1'b0;
+        writeEnabled <= 1'b0;
+        csda <= 1'b0;
+        address <= 7'h00;
+        state <= 6'h00;
+    end
+end
 
 always @(posedge sda) begin
   if (scl == 1 && start == 1) begin
@@ -22,9 +39,12 @@ always @(posedge sda) begin
 end
 
 always @(negedge sda) begin
-  if (scl == 1 && start == 0) begin
-    start <= 1'b0; writeEnabled <= 1'b0;
-    state <= 0;
+  if (state == STATE_PD0) begin
+    csda <= 1'b0; writeEnabled <= 1'b1;
+    state <= STATE_PD1;
+  end else if (scl == 1 && start == 0) begin
+    start <= 1'b1; writeEnabled <= 1'b0;
+    state <= 6'h00; address <= 7'h00;
   end
 end
 
@@ -34,19 +54,20 @@ always @(posedge scl) begin
       address[state] <= sda;
       state <= state + 1;
     end
-    if (state == 9) begin
-      state <= 0;
-    end
   end
 end
 
 always @(negedge scl) begin
-  if (state == 7) begin
-    csda <= 1'b0; writeEnabled <= 1'b1;
-    state <= state + 1;
-  end else if (state == 8) begin
+  if (state == 8) begin
+    if (sda) begin
+        state <= STATE_PD0;
+    end else begin
+        csda <= 1'b0; writeEnabled <= 1'b1;
+        state <= STATE_PD1;
+    end
+  end else if (state == STATE_PD1) begin
     writeEnabled <= 1'b0;
-    state <= state + 1;
+    state <= 0;
   end
 end
 

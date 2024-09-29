@@ -8,7 +8,6 @@ reg sda, sda_write, scl;
 assign sclw = scl;
 assign sdaw = sda_write ? sda : 1'bz;
 reg true;
-wire [7:0]outframe;
 
 always begin
     clk = 1; #5;
@@ -21,8 +20,9 @@ initial begin
     true = 1;
     sda = 1;
     scl = 1;
-    rst_n = 0; #20;
-    rst_n = 1;
+    rst_n = 0; #10;
+    sda_write <= 1'b1; sda = 1; #10;
+    rst_n = 1; 
 end
 
 main mn(
@@ -32,8 +32,7 @@ main mn(
     .led_1(),
     .led_2(),
     .sda(sdaw),
-    .scl(sclw),
-    .outframe(outframe));
+    .scl(sclw));
 
 initial begin
     #40;
@@ -42,15 +41,15 @@ initial begin
     scl = 0; #15;
     
     scl = 0; #15;
+    sda = 0; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
+    sda = 0; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
+    sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
+    sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
     sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
     sda = 0; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
     sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 0; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
     sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 0; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 0; #5; scl = 1; #15; scl = 0; #5 sda_write = 0; #15;
-    #5; scl = 1; #15; scl = 0; #15; sda = 1'b1; sda_write = 1;
+    sda_write = 0; #5; scl = 1; #15; scl = 0; #15; sda = 1'b1; sda_write = 1;
     
     $finish;
 end
