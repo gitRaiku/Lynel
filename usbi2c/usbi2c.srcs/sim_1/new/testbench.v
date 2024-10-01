@@ -8,6 +8,7 @@ reg sda, sda_write, scl;
 assign sclw = scl;
 assign sdaw = sda_write ? sda : 1'bz;
 reg true;
+integer i, j;
 
 always begin
     clk = 1; #5;
@@ -34,7 +35,7 @@ main mn(
     .sda(sdaw),
     .scl(sclw));
 
-reg [7:0]snd[0:5];
+reg [0:7]snda[0:5];
 
 initial begin
     #40;
@@ -43,6 +44,7 @@ initial begin
     snda[2] <= 8'b01000101;
     snda[3] <= 8'b00101000;
     snda[4] <= 8'b00010000;
+    snda[5] <= 8'b00000000;
     sda_write = 1;
     sda = 0; #15;
     scl = 0; #15;

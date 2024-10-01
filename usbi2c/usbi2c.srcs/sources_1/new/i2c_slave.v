@@ -3,30 +3,30 @@
 module i2c_slave(
     input sys_clk, input rst_n,
     inout sda, input scl,
-    output reg [7:0]frames[0:4], output reg doneframe
+    output reg [0:7]frames[0:4],
+    output reg doneframe
     );
 
-reg lsda;
-reg [7:0]start;
+reg [0:7]start;
 
 reg writeEnabled, csda;
 //assign sda = 1'bz;
 assign sda = writeEnabled ? csda : 1'bz;
 
-localparam ADDR = 7'b0011010;
+localparam [0:6]ADDR = 7'b0011010;
 
-reg [5:0]state;
+reg [0:5]state;
 
 localparam STATE_PD0 = 6'd20;
 localparam STATE_PD1 = 6'd21;
 
+integer i;
 always @(posedge sys_clk) begin
   if (!rst_n) begin
-    lsda <= 1'b0;
     start <= 8'h00;
     writeEnabled <= 1'b0;
     csda <= 1'b0;
-    for (i = 0; i < 4; i = i + 1) frames[i] <= 8'h00;
+    for (i = 0; i < 5; i = i + 1) frames[i] <= 8'h00;
     frames[0] <= 7'h00;
     state <= 6'h00;
     doneframe <= 0;
@@ -34,10 +34,10 @@ always @(posedge sys_clk) begin
 end
 
 always @(posedge sda) begin
-  if (scl == 1 && start == 1) begin // STOP Signal
+  if (scl == 1 && start > 0) begin // STOP Signal
     start <= 8'h00; writeEnabled <= 1'b0;
     state <= 0;
-    if (frames[0][6:0] == ADDR) begin
+    if (frames[0][0:6] == ADDR) begin
       doneframe <= 1;
     end
   end
@@ -56,7 +56,7 @@ end
 always @(posedge scl) begin
   if (start > 0) begin
     if ((state >= 0) && (state <= 7)) begin
-      frames[start][state] <= sda;
+      frames[start - 1][state] <= sda;
       state <= state + 1;
     end
   end
@@ -64,9 +64,14 @@ end
 
 always @(negedge scl) begin
   if (state == 8) begin
-    if (frames[0][6:0] == ADDR) begin // Start ACK signal now or when sda falls
+    if (frames[0][0:6] == ADDR) begin // Start ACK signal now or when sda falls
       doneframe <= 0;
-      for (i = 1; i < 4; i = i + 1) frames[i] <= 8'h00;
+      if (start == 1) begin
+        for (i = 1; i < 5; i = i + 1) begin
+          frames[i] <= 8'h00; // Clear prev undefined frames once i2c comms begin
+        end
+      end
+
       if (sda) begin
           state <= STATE_PD0;
       end else begin
@@ -80,7 +85,7 @@ always @(negedge scl) begin
   end else if (state == STATE_PD1) begin // Stop ACK signal
     writeEnabled <= 1'b0;
     state <= 0;
-    start <= 1;
+    start <= start + 1;
   end
 end
 

@@ -21,7 +21,12 @@ i2c_slave slave(
     .sys_clk(sys_clk),
     .rst_n(rst_n),
     .sda(sda), 
-    .scl(scl));
+    .scl(scl),
+    .frames(),
+    .doneframe()
+    );
+    
+
 
 
 always @(posedge sys_clk) begin
