@@ -40,16 +40,16 @@ reg [0:7]snda[0:5];
 initial begin
     #40;
     snda[0] <= 8'b00110100;
-    snda[1] <= 8'b10000010;
-    snda[2] <= 8'b01000101;
-    snda[3] <= 8'b00101000;
-    snda[4] <= 8'b00010000;
-    snda[5] <= 8'b00000000;
+    snda[1] <= 8'h12;
+    snda[2] <= 8'h34;
+    snda[3] <= 8'h56;
+    snda[4] <= 8'hab;
+    snda[5] <= 8'hbc;
     sda_write = 1;
     sda = 0; #15;
     scl = 0; #15;
     
-    for (i = 0; i < 5; i = i + 1) begin
+    for (i = 0; i < 6; i = i + 1) begin
       for (j = 0; j < 8; j = j + 1) begin
         sda = snda[i][j]; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
       end

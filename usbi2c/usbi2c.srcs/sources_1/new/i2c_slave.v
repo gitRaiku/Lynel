@@ -1,9 +1,9 @@
 `timescale 1ns / 1ps
 
-module i2c_slave(
+module i2c_slave #(parameter FRAMECOUNT=6) (
     input sys_clk, input rst_n,
     inout sda, input scl,
-    output reg [0:7]frames[0:4],
+    output reg [0:7]frames[0:FRAMECOUNT - 1],
     output reg doneframe
     );
 
@@ -26,7 +26,7 @@ always @(posedge sys_clk) begin
     start <= 8'h00;
     writeEnabled <= 1'b0;
     csda <= 1'b0;
-    for (i = 0; i < 5; i = i + 1) frames[i] <= 8'h00;
+    for (i = 0; i < FRAMECOUNT; i = i + 1) frames[i] <= 8'h00;
     frames[0] <= 7'h00;
     state <= 6'h00;
     doneframe <= 0;
@@ -67,7 +67,7 @@ always @(negedge scl) begin
     if (frames[0][0:6] == ADDR) begin // Start ACK signal now or when sda falls
       doneframe <= 0;
       if (start == 1) begin
-        for (i = 1; i < 5; i = i + 1) begin
+        for (i = 1; i < FRAMECOUNT; i = i + 1) begin
           frames[i] <= 8'h00; // Clear prev undefined frames once i2c comms begin
         end
       end
