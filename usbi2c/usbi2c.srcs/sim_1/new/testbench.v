@@ -34,22 +34,29 @@ main mn(
     .sda(sdaw),
     .scl(sclw));
 
+reg [7:0]snd[0:5];
+
 initial begin
     #40;
+    snda[0] <= 8'b00110100;
+    snda[1] <= 8'b10000010;
+    snda[2] <= 8'b01000101;
+    snda[3] <= 8'b00101000;
+    snda[4] <= 8'b00010000;
     sda_write = 1;
     sda = 0; #15;
     scl = 0; #15;
     
-    scl = 0; #15;
-    sda = 0; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 0; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 0; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda = 1; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
-    sda_write = 0; #5; scl = 1; #15; scl = 0; #15; sda = 1'b1; sda_write = 1;
+    for (i = 0; i < 5; i = i + 1) begin
+      for (j = 0; j < 8; j = j + 1) begin
+        sda = snda[i][j]; #5; scl = 1; #15; scl = 0; #5 sda = 0; #15;
+      end
+      sda_write = 0; #5; scl = 1; #15; scl = 0; #8; sda = 0; sda_write = 1; 
+    end
+    scl = 1; #15;
+    sda = 1; #15;
+
+    sda_write = 0;
     
     $finish;
 end
