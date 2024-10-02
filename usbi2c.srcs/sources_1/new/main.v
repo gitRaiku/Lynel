@@ -17,16 +17,22 @@ wire [7:0]wframe;
 reg cframenr;
 wire framenr;
 
-i2c_slave slave(
+localparam FRAMECOUNT = 6;
+
+wire doneframe;
+wire [0:7]frames[0:FRAMECOUNT - 1];
+
+i2c_slave slave #(parameter FRAMECOUNT=FRAMECOUNT) (
     .sys_clk(sys_clk),
     .rst_n(rst_n),
     .sda(sda), 
     .scl(scl),
-    .frames(),
-    .doneframe()
-    );
+    .sdoneframe(doneframe),
+    .sframes(frames));
     
+always @(posedge doneframe) begin
 
+end
 
 
 always @(posedge sys_clk) begin

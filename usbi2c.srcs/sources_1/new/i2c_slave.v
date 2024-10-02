@@ -3,14 +3,13 @@
 module i2c_slave #(parameter FRAMECOUNT=6) (
     input sys_clk, input rst_n,
     inout sda, input scl,
-    output reg [0:7]frames[0:FRAMECOUNT - 1],
-    output reg doneframe
+    output wire sdoneframe,
+    output wire [0:7]sframes[0:FRAMECOUNT - 1]
     );
 
 reg [0:7]start;
 
 reg writeEnabled, csda;
-//assign sda = 1'bz;
 assign sda = writeEnabled ? csda : 1'bz;
 
 localparam [0:6]ADDR = 7'b0011010;
@@ -19,6 +18,13 @@ reg [0:5]state;
 
 localparam STATE_PD0 = 6'd20;
 localparam STATE_PD1 = 6'd21;
+
+reg [0:7]frames[0:FRAMECOUNT - 1];
+reg doneframe;
+reg [0:7]sys_frames[0:1][0:FRAMECOUNT - 1];
+reg sys_doneframe[0:1];
+assign sys_frames = sys_frames[1];
+assign sdoneframe = sys_doneframe[1];
 
 integer i;
 always @(posedge sys_clk) begin
@@ -30,6 +36,11 @@ always @(posedge sys_clk) begin
     frames[0] <= 7'h00;
     state <= 6'h00;
     doneframe <= 0;
+  end else begin
+    sys_frames   [0] <= frames          ;
+    sys_frames   [1] <= sys_frames   [0];
+    sys_doneframe[0] <= doneframe       ;
+    sys_doneframe[1] <= sys_doneframe[0];
   end
 end
 
