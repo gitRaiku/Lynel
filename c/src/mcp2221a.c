@@ -26,6 +26,26 @@ void print_response(unsigned char *buf) {
   fprintf(stdout, "0x%X ", buf[i]);
 }
 
+#define COMM(id, checks) \
+  memset(buf, 0, 64); \
+  buf[0] = id; \
+  checks; \
+  HIDCHECK(hid_write(handle, buf, 64)); \
+  HIDCHECK(hid_read(handle, buf, 64));
+
+void readsetparameters(uint8_t *buf, uint8_t cancelcomm, uint8_t speedcom, uint8_t speed) {
+  COMM(0x10,
+    if (cancelcomm) { buf[2] = 0x10; }
+    if (speedcom) { buf[3] = 0x20; buf[4] = speed; })
+}
+
+void readflash(uint8_t *buf, uint8_t subc) { /// SUBC 0x00(Flash settings), 0x01(GP Settings), 0x02(USB Product descriptor), 0x04(String), 0x05(Serial nr)
+  COMM(0xB0, 
+      buf[1] = subc);
+}
+
+void writeflashchip(uint8_t *buf, uint8_t usbenum, 
+
 void test() {
   HIDCHECK(hid_init());
   hid_device *__restrict handle;
@@ -44,11 +64,12 @@ void test() {
   HIDCHECK(hid_get_indexed_string(handle, 1, wch, 255));
   fprintf(stdout, "Indexed string 1 %ls\n", wch);
 
-  unsigned char buf[64];
-  buf[0] = 0x10;
-  HIDCHECK(hid_write(handle, buf, 64));
-  HIDCHECK(hid_read(handle, buf, 64));
+  uint8_t buf[64];
+  readsetparameters(buf, 0, 0, 0);
   print_response(buf);
+
+  memset(buf, 0, sizeof(buf));
+
 
   hid_close(handle);
   HIDCHECK(hid_exit());
