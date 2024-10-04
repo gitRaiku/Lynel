@@ -2,3 +2,4 @@ other/
 */*.runs
 */*.runs/
 *.o
+*/bin/

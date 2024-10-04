@@ -49,8 +49,6 @@ debug: build
 
 clean:
 	rm -f $(C_OBJ)
-	rm -f $(L_OBJ)
-	rm -f $(MOD)
 
 remove: clean
 	rm -f $(BIN_DIR)/$(TARGET)

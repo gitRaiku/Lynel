@@ -16,15 +16,16 @@ void print_response(unsigned char *buf) {
   int32_t i, j;
   for(i = 0; i < 9; ++i) {
     for(j = 0; j < 9; ++j) {
-      if (i == 0 && j == 0) { fprintf(stdout, "     "); }
-      else if (i == 0) { fprintf(stdout, " 0x0%u ", j); } 
-      else if (j == 0) { fprintf(stdout, " 0x%u0 ", i); }
-      else { fprintf(stdout, "| 0x%x ", buf[i - 1 * 8 + j - 1]); }
+      if (i == 0 && j == 0) { fprintf(stdout, "      "); }
+      else if (i == 0) { fprintf(stdout, "| 0x0%u ", j - 1); } 
+      else if (j == 0) { fprintf(stdout, " 0x%u0 ", i - 1); }
+      else { fprintf(stdout, "| 0x%02x ", buf[(i - 1) * 8 + j - 1]); }
     }
     fputc('\n', stdout);
   }
-  fprintf(stdout, "0x%X ", buf[i]);
 }
+
+hid_device *__restrict handle;
 
 #define COMM(id, checks) \
   memset(buf, 0, 64); \
@@ -44,12 +45,10 @@ void readflash(uint8_t *buf, uint8_t subc) { /// SUBC 0x00(Flash settings), 0x01
       buf[1] = subc);
 }
 
-void writeflashchip(uint8_t *buf, uint8_t usbenum, 
+// void writeflashchip(uint8_t *buf, uint8_t usbenum, 
 
 void test() {
   HIDCHECK(hid_init());
-  hid_device *__restrict handle;
-
   wchar_t wch[255];
 
   handle = hid_open(0x4D8, 0x00DD, NULL);
@@ -59,13 +58,10 @@ void test() {
   fprintf(stdout, "Manufacturer string %ls\n", wch);
   HIDCHECK(hid_get_product_string(handle, wch, 255));
   fprintf(stdout, "Product string %ls\n", wch);
-  HIDCHECK(hid_get_serial_number_string(handle, wch, 255));
-  fprintf(stdout, "Serial number %d %ls\n", wch[0], wch);
-  HIDCHECK(hid_get_indexed_string(handle, 1, wch, 255));
-  fprintf(stdout, "Indexed string 1 %ls\n", wch);
 
-  uint8_t buf[64];
-  readsetparameters(buf, 0, 0, 0);
+  uint8_t buf[65];
+  //readsetparameters(buf, 0, 0, 0);
+  readflash(buf, 0);
   print_response(buf);
 
   memset(buf, 0, sizeof(buf));
