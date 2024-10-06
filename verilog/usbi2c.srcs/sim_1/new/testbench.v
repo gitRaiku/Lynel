@@ -11,8 +11,8 @@ reg true;
 integer i, j;
 
 always begin
-    clk = 1; #5;
-    clk = 0; #5;
+    clk = 1; #3;
+    clk = 0; #3;
 end
 
 initial begin

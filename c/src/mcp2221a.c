@@ -45,6 +45,30 @@ void readflash(uint8_t *buf, uint8_t subc) { /// SUBC 0x00(Flash settings), 0x01
       buf[1] = subc);
 }
 
+void writestring(uint8_t *buf, uint8_t md, wchar_t *str) { // md=0: manufacturer description; md=1: product descriptor string, md=2: Serial number descriptor string
+  if (md > 2) { return; }
+  COMM(0xB1,
+      buf[1] = md + 2;
+      uint32_t sl = wcslen(str);
+      buf[2] = sl * 2 + 2;
+      buf[3] = 0x03;
+      int32_t i;
+      for(i = 0; i < sl; ++i) {
+        buf[4 + i * 2] = LB(str[i]);
+        buf[5 + i * 2] = HB(str[i]);
+      }
+      )
+}
+
+void writei2c(uint8_t *buf, uint32_t len, uint8_t addr, uint8_t *data) {
+  uint32_t cl = len;
+  COMM(0x90,
+      buf[1] = LB(len);
+      buf[2] = HB(len);
+      buf[3] = (addr << 1) + 0;
+      memcpy(buf + 4, data, len));
+}
+
 // void writeflashchip(uint8_t *buf, uint8_t usbenum, 
 
 void test() {
@@ -61,7 +85,12 @@ void test() {
 
   uint8_t buf[65];
   //readsetparameters(buf, 0, 0, 0);
-  readflash(buf, 0);
+  //readflash(buf, 0);
+  //print_response(buf);
+  //writestring(buf, 0, L"Raraiku");
+  //writestring(buf, 1, L"日本語");
+  uint8_t c[22] = {0};
+  writei2c(buf, 20, 0xc2, c);
   print_response(buf);
 
   memset(buf, 0, sizeof(buf));

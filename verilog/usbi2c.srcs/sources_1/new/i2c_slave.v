@@ -21,10 +21,9 @@ localparam STATE_PD1 = 6'd21;
 
 reg [0:7]frames[0:FRAMECOUNT - 1];
 reg doneframe;
-reg [0:7]sys_frames[0:1][0:FRAMECOUNT - 1];
-reg sys_doneframe[0:1];
-assign sys_frames = sys_frames[1];
-assign sdoneframe = sys_doneframe[1];
+
+cdc dframe(sys_clk, rst_n, doneframe, sdoneframe);
+cdcv #(.BITC(8),.VLEN(FRAMECOUNT))dframes(sys_clk, rst_n, frames, sframes);
 
 integer i;
 always @(posedge sys_clk) begin
@@ -32,15 +31,11 @@ always @(posedge sys_clk) begin
     start <= 8'h00;
     writeEnabled <= 1'b0;
     csda <= 1'b0;
-    for (i = 0; i < FRAMECOUNT; i = i + 1) frames[i] <= 8'h00;
+    for (i = 0; i < FRAMECOUNT; i = i + 1) begin frames[i] <= 8'h00; end
     frames[0] <= 7'h00;
     state <= 6'h00;
     doneframe <= 0;
   end else begin
-    sys_frames   [0] <= frames          ;
-    sys_frames   [1] <= sys_frames   [0];
-    sys_doneframe[0] <= doneframe       ;
-    sys_doneframe[1] <= sys_doneframe[0];
   end
 end
 
