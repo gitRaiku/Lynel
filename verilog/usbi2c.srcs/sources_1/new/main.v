@@ -22,9 +22,7 @@ i2c_slave #(.FRAMECOUNT(FRAMECOUNT)) slave (
     .sys_clk(sys_clk),
     .rst_n(rst_n),
     .sda(sda), 
-    .scl(scl),
-    .sdoneframe(doneframe),
-    .sframes());
+    .scl(scl));
     
 always @(posedge doneframe) begin
   l1 <= 1;

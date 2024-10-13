@@ -56,45 +56,123 @@ void writestring(uint8_t *buf, uint8_t md, wchar_t *str) { // md=0: manufacturer
       for(i = 0; i < sl; ++i) {
         buf[4 + i * 2] = LB(str[i]);
         buf[5 + i * 2] = HB(str[i]);
-      }
-      )
+      })
+}
+
+void pers(uint8_t *buf){ 
+  writestring(buf, 0, L"Raraiku");
+  writestring(buf, 1, L"日本語");
 }
 
 void writei2c(uint8_t *buf, uint32_t len, uint8_t addr, uint8_t *data) {
-  uint32_t cl = len;
+  //uint32_t cl = len;
   COMM(0x90,
       buf[1] = LB(len);
       buf[2] = HB(len);
       buf[3] = (addr << 1) + 0;
-      memcpy(buf + 4, data, len));
+      memcpy(buf + 4, data, len))
+}
+
+void reset(uint8_t *buf) {
+  COMM(0x70,
+      buf[1] = 0xAB;
+      buf[2] = 0xCD;
+      buf[3] = 0xEF)
+  exit(0);
+}
+
+void writechip(uint8_t *buf) {
+  COMM(0xB1,
+      buf[2] = 0b11111100 & 0xfc;
+      buf[6] = 0x72;
+      buf[8] = 0x32;
+      buf[11] = 0x32)
+}
+
+void readchip(uint8_t *buf) { COMM(0xB0,); }
+
+void setsram(uint8_t *buf) {
+  COMM(0x60,
+      //buf[11] = 0b10000000)
+      buf[7] = 0xff;
+      buf[8] = 0b00000111;
+      buf[9] = 0b00000111;
+      buf[10] = 0b00000111;
+      buf[11] = 0b00000001)
+}
+
+void seti2csdiv(uint8_t *buf, uint8_t clkdiv) {
+  COMM(0x10,
+      buf[3] = 0x20;
+      buf[4] = clkdiv)
+}
+
+void readparam(uint8_t *buf) { COMM(0x10,) }
+
+void reseti2c(uint8_t *buf) { COMM(0x10, buf[2] = 0x10) }
+
+void print_param(uint8_t *buf) {
+  if (buf[0] != 0x10) { fprintf(stderr, "Incorrect command!\n"); return; }
+  if (buf[1] != 0x00) { fprintf(stderr, "Command didn't complete!\n"); }
+  fprintf(stdout, "Cancel transfer: %x\n", buf[2]);
+  fprintf(stdout, "New speed %x %x\n", buf[3], buf[4]);
+  fprintf(stdout, "I2C State machine %x\n", buf[8]);
+  fprintf(stdout, "I2C speed %x\n", buf[15]);
+  fprintf(stdout, "SCL %x SDA %x\n", buf[22], buf[23]);
 }
 
 // void writeflashchip(uint8_t *buf, uint8_t usbenum, 
 
 void test() {
   HIDCHECK(hid_init());
-  wchar_t wch[255];
 
-  handle = hid_open(0x4D8, 0x00DD, NULL);
+  handle = hid_open(0x0072, 0x0032, NULL);
   if (!handle) { fprintf(stdout, "Could not open device!\n"); hid_exit(); exit(1); }
-
+  /*
+  wchar_t wch[255];
   HIDCHECK(hid_get_manufacturer_string(handle, wch, 255));
   fprintf(stdout, "Manufacturer string %ls\n", wch);
   HIDCHECK(hid_get_product_string(handle, wch, 255));
   fprintf(stdout, "Product string %ls\n", wch);
+  */
 
   uint8_t buf[65];
-  //readsetparameters(buf, 0, 0, 0);
-  //readflash(buf, 0);
-  //print_response(buf);
-  //writestring(buf, 0, L"Raraiku");
-  //writestring(buf, 1, L"日本語");
-  uint8_t c[22] = {0};
-  writei2c(buf, 20, 0xc2, c);
-  print_response(buf);
+  
+  uint8_t cz = 3;
+  switch (cz) {
+    case 0:
+      readparam(buf);
+      print_param(buf);
+      break;
+    case 1:
+      reseti2c(buf);
+      print_param(buf);
+      break;
+    case 2:
+      seti2csdiv(buf, 255);
+      print_param(buf);
+      break;
+    case 3:
+      uint8_t c[22] = {0};
+      writei2c(buf, 20, 0xc2, c);
+      while (1) {
+        readparam(buf);
+        print_param(buf);
+      }
+      break;
+    case 4:
+      setsram(buf);
+      print_response(buf);
+      break;
+    case 20:
+      reset(buf);
+      exit(0);
+  }
 
-  memset(buf, 0, sizeof(buf));
-
+  /*
+  struct timespec ts = {.tv_sec = 0, .tv_nsec = 800000000};
+  nanosleep(&ts, NULL);
+  */
 
   hid_close(handle);
   HIDCHECK(hid_exit());

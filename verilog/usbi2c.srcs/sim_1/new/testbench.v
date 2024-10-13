@@ -55,6 +55,7 @@ initial begin
       end
       sda_write = 0; #5; scl = 1; #15; scl = 0; #8; sda = 0; sda_write = 1; 
     end
+    #2;
     scl = 1; #15;
     sda = 1; #15;
 

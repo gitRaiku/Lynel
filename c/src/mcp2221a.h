@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wchar.h>
+#include <time.h>
 
 #include <hidapi.h>
 
